@@ -1,0 +1,25 @@
+name: Students Table Creation
+
+on: 
+  push: 
+    branches: ["main"]
+
+jobs:
+  runs-sql:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        port: 
+          -3306: 3306
+
+    steps:
+      -name: Get My Code
+      uses: actions/checkout@v4
+      
+      -name: Install MySQL Client
+      run: sudo apt-get mysql-client -y
+
+      -name: Run SQL File
+      run: mysql -h 127.0.0.1 -u root -proot <sql/students.sql

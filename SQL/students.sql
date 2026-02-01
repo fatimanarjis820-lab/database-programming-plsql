@@ -6,8 +6,11 @@ CREATE TABLE students
 );
 
 
-INSERT INTO student (student_id, student_name) VALUES (101, 'Johnn');
-
-SELECT * FROM student;
+INSERT INTO students (student_id, student_name) VALUES (101, 'Joh');
 
 
+SELECT * FROM students;
+
+DELETE FROM students;
+
+DROP TABLE students;
