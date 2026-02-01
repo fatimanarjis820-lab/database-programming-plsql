@@ -6,6 +6,8 @@ CREATE TABLE students
 );
 
 
+
+
 INSERT INTO students (student_id, student_name) VALUES (101, 'Joh');
 
 
