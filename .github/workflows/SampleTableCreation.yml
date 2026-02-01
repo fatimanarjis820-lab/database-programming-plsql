@@ -21,5 +21,14 @@ jobs:
       - name: Install MySQL Client
         run: sudo apt-get install mysql-client -y
 
+      - name: Wait for MySQL
+        run: |
+          echo "Waiting for MySQL to start..."
+          until mysql -h 127.0.0.1 -u root -proot -e "SHOW DATABASES;" >/dev/null 2>&1; do
+          sleep 2
+          done
+          echo "MySQL is ready!"
+
+
       - name: Run SQL File
         run: mysql -h 127.0.0.1 -u root -proot < SQL/students.sql
