@@ -13,28 +13,30 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
+          MYSQL_ROOT_HOST: "%"
+          MYSQL_DATABASE: testdb
         ports:
           - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Get My Code
         uses: actions/checkout@v4
 
       - name: Install MySQL Client
-        run: sudo apt-get install mysql-client -y
+        run: sudo apt-get update && sudo apt-get install mysql-client -y
 
       - name: Wait for MySQL
         run: |
           echo "Waiting for MySQL to start..."
-          for i in {1..30}; do
-            if mysql -h mysql -u root -proot -e "SHOW DATABASES;" >/dev/null 2>&1; then
-              echo "MySQL is ready!"
-              exit 0
-            fi
+          until mysqladmin ping -h mysql -u root -proot --silent; do
             sleep 2
           done
-          echo "MySQL did not start in time"
-          exit 1
+          echo "MySQL is ready!"
 
       - name: Run SQL File
-        run: mysql -h mysql -u root -proot < SQL/students.sql
+        run: mysql -h mysql -u root -proot testdb < SQL/students.sql
