@@ -14,32 +14,29 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: testdb
-        ports:
-          - 3306:3306
+        # No port mapping needed for internal CI access
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Install MySQL Client
-        run: sudo apt-get update && sudo apt-get install mysql-client -y
+        run: |
+          sudo apt-get update
+          sudo apt-get install mysql-client -y
 
-      - name: Wait for MySQL
+      - name: Wait for MySQL to Start
         run: |
           echo "Waiting for MySQL to start..."
-          retries=30   # increase retries to 30 (~60 seconds)
-          until mysql -h mysql -u root -proot -e "SELECT 1;" >/dev/null 2>&1 || [ $retries -eq 0 ]; do
-            echo "Waiting... ($retries)"
-            retries=$((retries-1))
+          for i in {1..60}; do
+            if mysql -hmysql -uroot -proot -e "SELECT 1;" >/dev/null 2>&1; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting... ($i)"
             sleep 2
           done
 
-          if [ $retries -eq 0 ]; then
-            echo "MySQL did not start in time"
-            exit 1
-          fi
-
-          echo "MySQL is ready!"
-
       - name: Run SQL File
-        run: mysql -h mysql -u root -proot testdb < SQL/students.sql
+        run: |
+          mysql -hmysql -uroot -proot testdb < SQL/students.sql
