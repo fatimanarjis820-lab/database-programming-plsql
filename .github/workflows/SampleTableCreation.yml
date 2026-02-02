@@ -27,13 +27,25 @@ jobs:
 
       - name: Wait for MySQL to Start
         run: |
-          echo "Waiting for MySQL to start..."
+          echo "Waiting for MySQL service to start..."
           for i in {1..60}; do
-            if mysql -hmysql -uroot -proot -e "SELECT 1;" >/dev/null 2>&1; then
-              echo "MySQL is ready!"
+            if mysqladmin ping -hmysql -uroot -proot --silent; then
+              echo "MySQL service is ready!"
               break
             fi
             echo "Waiting... ($i)"
+            sleep 2
+          done
+
+      - name: Wait for testdb Database to be Ready
+        run: |
+          echo "Waiting for testdb database..."
+          for i in {1..30}; do
+            if mysql -hmysql -uroot -proot -e "USE testdb;" >/dev/null 2>&1; then
+              echo "testdb is ready!"
+              break
+            fi
+            echo "Waiting for testdb... ($i)"
             sleep 2
           done
 
