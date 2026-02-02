@@ -14,8 +14,6 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: testdb
-          MYSQL_USER: ci_user
-          MYSQL_PASSWORD: ci_pass
         ports:
           - 3306:3306
 
@@ -29,8 +27,8 @@ jobs:
       - name: Wait for MySQL
         run: |
           echo "Waiting for MySQL to start..."
-          retries=15
-          until mysql -h mysql -u ci_user -pci_pass -e "SELECT 1;" >/dev/null 2>&1 || [ $retries -eq 0 ]; do
+          retries=30   # increase retries to 30 (~60 seconds)
+          until mysql -h mysql -u root -proot -e "SELECT 1;" >/dev/null 2>&1 || [ $retries -eq 0 ]; do
             echo "Waiting... ($retries)"
             retries=$((retries-1))
             sleep 2
@@ -44,4 +42,4 @@ jobs:
           echo "MySQL is ready!"
 
       - name: Run SQL File
-        run: mysql -h mysql -u ci_user -pci_pass testdb < SQL/students.sql
+        run: mysql -h mysql -u root -proot testdb < SQL/students.sql
