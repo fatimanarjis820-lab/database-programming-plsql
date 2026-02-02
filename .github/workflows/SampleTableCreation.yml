@@ -13,18 +13,14 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_ROOT_HOST: "%"
           MYSQL_DATABASE: testdb
+          MYSQL_USER: ci_user
+          MYSQL_PASSWORD: ci_pass
         ports:
           - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost -proot"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     steps:
-      - name: Get My Code
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Install MySQL Client
@@ -33,10 +29,14 @@ jobs:
       - name: Wait for MySQL
         run: |
           echo "Waiting for MySQL to start..."
-          until mysqladmin ping -h mysql -u root -proot --silent; do
+          # initial wait for MySQL to initialize
+          sleep 10
+          for i in {1..30}; do
+            mysql -h mysql -u ci_user -pci_pass -e "SELECT 1;" >/dev/null 2>&1 && break
+            echo "Waiting... ($i)"
             sleep 2
           done
           echo "MySQL is ready!"
 
       - name: Run SQL File
-        run: mysql -h mysql -u root -proot testdb < SQL/students.sql
+        run: mysql -h mysql -u ci_user -pci_pass testdb < SQL/students.sql
