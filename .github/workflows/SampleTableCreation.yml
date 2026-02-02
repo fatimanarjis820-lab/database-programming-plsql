@@ -29,13 +29,18 @@ jobs:
       - name: Wait for MySQL
         run: |
           echo "Waiting for MySQL to start..."
-          # initial wait for MySQL to initialize
-          sleep 10
-          for i in {1..30}; do
-            mysql -h mysql -u ci_user -pci_pass -e "SELECT 1;" >/dev/null 2>&1 && break
-            echo "Waiting... ($i)"
+          retries=15
+          until mysql -h mysql -u ci_user -pci_pass -e "SELECT 1;" >/dev/null 2>&1 || [ $retries -eq 0 ]; do
+            echo "Waiting... ($retries)"
+            retries=$((retries-1))
             sleep 2
           done
+
+          if [ $retries -eq 0 ]; then
+            echo "MySQL did not start in time"
+            exit 1
+          fi
+
           echo "MySQL is ready!"
 
       - name: Run SQL File
